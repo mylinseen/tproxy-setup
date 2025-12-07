@@ -9,4 +9,5 @@
 在你的服务器上运行以下命令来自动下载并执行脚本：
 
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/mylinseen/LXC-Debian-Singbox-Tproxy/main/tproxy_setup.sh)
+bash <(curl -fsSL https://raw.githubusercontent.com/mylinseen/tproxy-setup/main/tproxy_setup.sh)
+
