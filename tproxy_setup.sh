@@ -25,8 +25,23 @@ echo "=== 写入路由表 ==="
 grep -q "100 singbox" /etc/iproute2/rt_tables || echo "100 singbox" >> /etc/iproute2/rt_tables
 
 echo "=== 添加策略路由 ==="
-ip rule add fwmark 1 lookup singbox 2>/dev/null || true
-ip route add local 0.0.0.0/0 dev lo table singbox 2>/dev/null || true
+# 检查是否已存在规则，如果已存在则不添加
+ip rule show | grep -q "fwmark 1 lookup singbox"
+if [ $? -ne 0 ]; then
+    ip rule add fwmark 1 lookup singbox
+fi
+
+# 检查路由是否已存在，避免重复添加
+ip route show table singbox | grep -q "local 0.0.0.0/0"
+if [ $? -ne 0 ]; then
+    ip route add local 0.0.0.0/0 dev lo table singbox
+fi
+
+# 检查是否已存在IPv6路由
+ip -6 route show table singbox | grep -q "local ::/0"
+if [ $? -ne 0 ]; then
+    ip -6 route add local ::/0 dev lo table singbox
+fi
 
 echo "=== 创建 tproxy-route.service ==="
 
@@ -39,6 +54,7 @@ After=network-online.target
 Type=oneshot
 ExecStart=/usr/sbin/ip rule add fwmark 1 lookup singbox
 ExecStart=/usr/sbin/ip route add local 0.0.0.0/0 dev lo table singbox
+ExecStart=/usr/sbin/ip -6 route add local ::/0 dev lo table singbox
 RemainAfterExit=yes
 
 [Install]
